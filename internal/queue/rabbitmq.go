@@ -40,6 +40,10 @@ func (q *Queue) Close() {
 	}
 }
 
+func (q *Queue) IsClosed() bool {
+	return q.conn.IsClosed()
+}
+
 func (q *Queue) PublishTask(queueName string, taskID string, payload json.RawMessage) error {
 	// Ensure queue exists
 	_, err := q.ch.QueueDeclare(

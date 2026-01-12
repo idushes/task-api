@@ -36,10 +36,32 @@ func NewHandler(store *storage.Storage, queue *queue.Queue) *Handler {
 }
 
 func (h *Handler) RegisterRoutes(r *mux.Router) {
+	// Probes
+	r.HandleFunc("/healthz", h.Healthz).Methods("GET")
+	r.HandleFunc("/readyz", h.Readyz).Methods("GET")
+
 	// Match UUID for ID-based routes
 	r.HandleFunc("/task/{id:[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}}", h.CompleteTask).Methods("POST")
 	// Match remaining as worker_name
 	r.HandleFunc("/task/{worker_name}", h.CreateTask).Methods("POST")
+}
+
+func (h *Handler) Healthz(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("ok"))
+}
+
+func (h *Handler) Readyz(w http.ResponseWriter, r *http.Request) {
+	if err := h.store.Ping(); err != nil {
+		http.Error(w, "Database not ready", http.StatusServiceUnavailable)
+		return
+	}
+	if h.queue.IsClosed() {
+		http.Error(w, "RabbitMQ not ready", http.StatusServiceUnavailable)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("ok"))
 }
 
 // CreateTaskRequest

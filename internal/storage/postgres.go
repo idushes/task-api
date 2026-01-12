@@ -39,6 +39,10 @@ func (s *Storage) InitDB(schemaPath string) error {
 	return nil
 }
 
+func (s *Storage) Ping() error {
+	return s.db.Ping()
+}
+
 func (s *Storage) CreateTask(task *Task) (string, error) {
 	var id string
 	query := `
