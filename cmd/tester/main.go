@@ -11,6 +11,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
@@ -27,10 +28,21 @@ type Config struct {
 }
 
 func main() {
+	_ = godotenv.Load() // Load .env file if exists
+
+	apiURL := os.Getenv("API_URL")
+	if apiURL == "" {
+		port := os.Getenv("PORT")
+		if port == "" {
+			port = "8080"
+		}
+		apiURL = "http://127.0.0.1:" + port
+	}
+
 	cfg := Config{
 		PostgresURL: os.Getenv("POSTGRES_URL"),
 		RabbitMQURL: os.Getenv("RABBITMQ_URL"),
-		APIUrl:      "http://127.0.0.1:8080",
+		APIUrl:      apiURL,
 	}
 
 	if cfg.PostgresURL == "" || cfg.RabbitMQURL == "" {

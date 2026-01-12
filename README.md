@@ -10,13 +10,21 @@ A Go-based API for managing tree-structured tasks using PostgreSQL and RabbitMQ.
 
 ## Configuration
 
-Copy `.env.example` to `.env` (or create one) and configure your connection strings:
-```properties
-POSTGRES_URL=postgres://user:pass@localhost:5432/dbname?sslmode=disable
-RABBITMQ_URL=amqp://guest:guest@localhost:5672/
-PORT=8080
+The application automatically loads environment variables from a `.env` file in the current directory if it exists.
+
+1.  Copy `.env.example` to `.env` (or create one):
+    ```properties
+    POSTGRES_URL=postgres://user:pass@localhost:5432/dbname?sslmode=disable
+    RABBITMQ_URL=amqp://guest:guest@localhost:5672/
+    PORT=8080
+    ```
+
+You can also set these variables in your shell environment, which will take precedence (except for `.env` which is loaded if present, but standard env precedence applies).
+
+To change the port, you can update `.env` or pass it when running:
+```bash
+PORT=9000 make run
 ```
-*(A default `.env` is created for you if you asked the assistant)*
 
 ## Database Migrations
 
@@ -49,18 +57,13 @@ This produces binaries in `bin/`: `bin/api` and `bin/tester`.
 ```bash
 make run
 ```
-Starts the API server on the configured port.
+Starts the API server.
 
 ### Run Tests
 ```bash
 make test
 ```
-Runs the integration test suite. This requires the API to be running? 
-**NOTE**: The `make test` command currently runs the **tester app**, but the tester app communicates with the API. 
-**You must have `make run` running in a separate terminal**, OR modify the `Makefile` / `tester` to start the API.
-*Wait, looking at `tester/main.go`, it hits `http://localhost:8080`. So yes, you need the API running.*
-
-Steps to test:
-1. Terminal 1: `make run`
-2. Terminal 2: `make test`
-
+This command:
+1.  Starts the API in the background.
+2.  Runs the integration test suite (`cmd/tester`).
+3.  Cleans up the background API process.
