@@ -205,10 +205,22 @@ func (h *Handler) CompleteTask(w http.ResponseWriter, r *http.Request) {
 				json.Unmarshal(parent.Payload, &combinedPayload)
 			}
 			var resultObj []interface{}
-			for _, r := range results {
-				var rObj interface{}
-				json.Unmarshal(r, &rObj)
-				resultObj = append(resultObj, rObj)
+			for _, child := range results {
+				var rAny interface{}
+				if err := json.Unmarshal(child.Result, &rAny); err != nil {
+					log.Printf("Failed to unmarshal result for task %s: %v", child.ID, err)
+					continue
+				}
+
+				if rMap, ok := rAny.(map[string]interface{}); ok {
+					rMap["id"] = child.ID
+					resultObj = append(resultObj, rMap)
+				} else {
+					resultObj = append(resultObj, map[string]interface{}{
+						"result": rAny,
+						"id":     child.ID,
+					})
+				}
 			}
 			combinedPayload["subtasks"] = resultObj
 
