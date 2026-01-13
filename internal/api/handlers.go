@@ -214,11 +214,17 @@ func (h *Handler) CompleteTask(w http.ResponseWriter, r *http.Request) {
 
 				if rMap, ok := rAny.(map[string]interface{}); ok {
 					rMap["id"] = child.ID
+					rMap["worker"] = child.Worker
+					if _, exists := rMap["subtasks"]; !exists {
+						rMap["subtasks"] = []interface{}{}
+					}
 					resultObj = append(resultObj, rMap)
 				} else {
 					resultObj = append(resultObj, map[string]interface{}{
-						"result": rAny,
-						"id":     child.ID,
+						"result":   rAny,
+						"id":       child.ID,
+						"worker":   child.Worker,
+						"subtasks": []interface{}{},
 					})
 				}
 			}

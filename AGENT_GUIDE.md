@@ -104,10 +104,32 @@ The system supports a Map-Reduce style flow.
        "payload": {
          // ... original payload fields ...
          "subtasks": [
-           { "id": "child_id_1", "child_result_1": "..." },
-           { "id": "child_id_2", "child_result_2": "..." }
+           {
+             "id": "child_id_1",
+             "worker": "worker_a",
+             "child_result_1": "some_value",
+             "subtasks": []
+           },
+           {
+             "id": "child_id_2",
+             "worker": "worker_b",
+             "child_result_2": "has_nested_child",
+             "subtasks": [
+               {
+                 "id": "grandchild_id_1",
+                 "worker": "worker_c",
+                 "grandchild_result": "...",
+                 "subtasks": []
+               }
+             ]
+           }
          ]
        }
      }
      ```
    - Your worker receives this new message, sees the `subtasks` field, processes the aggregate results, and calls **Complete Task** again with the final result.
+
+### Data Structure Note
+
+- **Merged Fields**: The system **merges** the `id`, `worker`, and `subtasks` fields directly into your result object (if it is a JSON object). They are NOT wrapped in a separate container.
+- **Recursive Subtasks**: The `subtasks` field is a list of results from child tasks. Since each child task can itself have subtasks, this structure is **recursive**. Each item in the `subtasks` array will also contain its own `subtasks: []` field (empty if leaf).

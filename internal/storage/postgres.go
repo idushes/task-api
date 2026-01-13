@@ -117,7 +117,7 @@ func (s *Storage) GetIncompleteChildCount(parentID string) (int, error) {
 }
 
 func (s *Storage) GetChildrenResults(parentID string) ([]*Task, error) {
-	query := `SELECT id, result FROM tasks WHERE parent_id = $1`
+	query := `SELECT id, worker, result FROM tasks WHERE parent_id = $1`
 	rows, err := s.db.Query(query, parentID)
 	if err != nil {
 		return nil, err
@@ -127,13 +127,15 @@ func (s *Storage) GetChildrenResults(parentID string) ([]*Task, error) {
 	var tasks []*Task
 	for rows.Next() {
 		var id string
+		var worker string
 		var r []byte
-		if err := rows.Scan(&id, &r); err != nil {
+		if err := rows.Scan(&id, &worker, &r); err != nil {
 			log.Printf("Failed to scan child result: %v", err)
 			continue
 		}
 		tasks = append(tasks, &Task{
 			ID:     id,
+			Worker: worker,
 			Result: json.RawMessage(r),
 		})
 	}
